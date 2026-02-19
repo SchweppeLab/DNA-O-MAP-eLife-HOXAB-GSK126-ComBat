@@ -1,0 +1,133 @@
+---
+title: "HoxAB_GSK126_ComBat_BatchCorrection"
+output: pdf_document
+date: "2025-03-04"
+author: Conor Herlihy
+---
+#DNA O-MAP HOXA and HOXB ComBat batch correction script
+##Here we are performing batch correction on GSK126 treated and TMT labeled HOXA and HOXB DNA O-MAP samples
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load the libraries needed for this script
+```{r Librarian Duties}
+library(tidyverse)
+library(sva)
+```
+
+## Read in the data
+### Here we're loading in the protein quant data from our MS run
+### This data is from the Hox A&B +/-GSK126 samples run on 2025.01.21
+```{r Reading in the Library}
+#Read in the data
+Mosaic_Protein <- read.csv("./Live_pq_693_TMTMosaic.csv", row.names = 1)
+```
+
+## Here we're going to perform the PCA prior to running ComBat 
+### This will give us the baseline of the data before any corrections are made
+```{r Preparing for a fight}
+#Select only the numeric columns for PCA analysis
+all_numeric <- Mosaic_Protein %>%
+  select(5:22)
+
+#Generate the PCA
+PCA <- prcomp(t(all_numeric))
+
+#Move the PCA data for graphing to a data frame
+PCA_x <- as.data.frame(PCA$x)
+
+#Set the color palette for graphing the PCA
+color_pal <- c("cyan","cyan","cyan",
+           "#FCEADE","#FCEADE","#FCEADE",
+           "#FF8A5B","#FF8A5B","#FF8A5B",
+           "#EA526F","#EA526F","#EA526F",
+           "#FFFFFF","#FFFFFF","#FFFFFF",
+           "#FFC300","#FFC300","#FFC300")
+
+
+#Create and save the PCA plot
+ggplot(PCA_x, aes(x=PC1, y=PC2, color = color_pal)) + geom_point(size=5) + ylim(-175,125) + xlim(-100,500)
+ggsave('Pre-ComBat_PCA_HoxAB-GSK126.pdf', dpi = 300)
+```
+
+## Now we will use combat to attempt batch correction for our data
+```{r Hand to Hand ComBat}
+#Select the desired columns from 'Mosaic_Protein'
+#Then remove the first row (possibly a header or unwanted data)
+ComBat_Mosaic <- Mosaic_Protein %>%
+  select(contains("GeneSymbol") | 5:22) %>%
+  slice(-1)
+
+#Create a data frame 'ComBat_Key' that maps sample conditions to sample IDs, batches, and variable groups
+#This will be used to specify batch information for batch correction
+ComBat_Key <- data.frame(
+  condition = c("A_plus_1","A_plus_2","A_plus_3",
+                "A_minus_1","A_minus_2","A_minus_3",
+                "B_plus_1","B_plus_2","B_plus_3",
+                "B_minus_1","B_minus_2","B_minus_3",
+                "A_plus_1_48","A_plus_2_48","A_plus_3_48",
+                "A_minus_1_48","A_minus_2_48","A_minus_3_48"),
+  sample = c(1:18),
+  batch = c(1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3),
+  var = c("A_plus","A_plus","A_plus",
+          "A_minus","A_minus","A_minus",
+          "B_plus","B_plus","B_plus",
+          "B_minus","B_minus","B_minus",
+          "A_plus_48","A_plus_48","A_plus_48",
+          "A_minus_48","A_minus_48","A_minus_48")
+) %>%
+  column_to_rownames(var = "condition") #Set the 'condition' column to be the row names
+
+#Convert 'ComBat_Mosaic' to a data frame and set 'GeneSymbol' column as row names
+#This prepares the data for batch correction input
+ComBat_Data <- data.frame(ComBat_Mosaic, row.names = NULL) %>%
+  column_to_rownames(var = "GeneSymbol")
+
+#Extract the batch column from 'ComBat_Key' to specify the replicate of each sample
+batch <- ComBat_Key$batch
+
+#Create a model matrix with an intercept only (~1), indicating no additional covariates
+#This is used in ComBat to preserve overall mean value
+modComBat <- model.matrix(~1, data = ComBat_Key)
+
+#Run ComBat batch correction on the data frame using batch info and model matrix
+#ComBat is used to adjust for batch effects while preserving biological variation
+Combat_Input <- ComBat(dat = ComBat_Data, batch = batch, mod = modComBat)
+
+#Convert the batch corrected output back to a data frame and restore 'GeneSymbol' as a column
+ComBat_output <- as.data.frame(Combat_Input) %>%
+  rownames_to_column("GeneSymbol")
+
+#Write out the data to a csv file
+write.csv(ComBat_output, "HoxAB_GSK126_ComBat_Batch_Corrected.csv")
+```
+
+## Now that we've batch corrected our data we can re-run the PCA on that data
+```{r Post-Fight Interview}
+#Generate a data frame for PCA analysis after batch correction
+Post_CB_Data <- ComBat_output %>%
+  select(2:19)
+
+#Perform the PCA analysis
+CB_PCA <- prcomp(t(Post_CB_Data))
+
+#Save PCA output data as a seperate data frame
+CB_PCA_x <- as.data.frame(CB_PCA$x)
+
+#Redefine the color palette, just in case
+color_pal <- c("cyan","cyan","cyan",
+           "#FCEADE","#FCEADE","#FCEADE",
+           "#FF8A5B","#FF8A5B","#FF8A5B",
+           "#EA526F","#EA526F","#EA526F",
+           "#FFFFFF","#FFFFFF","#FFFFFF",
+           "#FFC300","#FFC300","#FFC300")
+
+#Generate the PCA plot and export as a pdf with set scales to match the pre-batch corrected data's scales
+ggplot(CB_PCA_x, aes(x=PC1, y=PC2, color = color_pal)) + geom_point(size=5) + ylim(-175,125) + xlim(-100,500)
+ggsave('Post_ComBat_PCA_HoxAB-GSK126.pdf', dpi = 300)
+
+#Generate the PCA plot and export as a pdf with the scales determined by ggplot2
+ggplot(CB_PCA_x, aes(x=PC1, y=PC2, color = color_pal)) + geom_point(size = 5)
+ggsave('Unscaled_Post_ComBat_PCA_HoxAB-GSK126.pdf', dpi = 300)
+```
