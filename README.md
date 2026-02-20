@@ -1,6 +1,6 @@
 # DNA-O-MAP HOXA and HOXB ComBat Batch Correction
 
-This repository contains the analysis script for performing batch correction on GSK126-treated and TMT-labeled HOXA and HOXB DNA O-MAP samples.
+This repository contains the analysis script and input data for performing batch correction on GSK126-treated and TMT-labeled HOXA and HOXB DNA O-MAP samples.
 
 ## Author
 
@@ -8,7 +8,7 @@ This repository contains the analysis script for performing batch correction on 
 
 ## Related Publication
 
-This analysis is associated with a publication in eLife. The DOI for the related paper will be added upon publication.
+This analysis is associated with the "DNA O-MAP uncovers the molecular neighborhoods associated with specific genomic loci" publication in eLife. The DOI for the related paper will be added upon publication.
 
 ## Required R Libraries
 
@@ -38,7 +38,7 @@ The script performs the following key analyses:
    - HOXA +/- GSK126 treatment
    - HOXB +/- GSK126 treatment
    - Multiple biological replicates (batches 1, 2, 3)
-   - Different time points (baseline and 48h)
+   - Different time points
 
 4. **Post-Correction PCA Analysis**: Re-performs PCA on batch-corrected data to validate the effectiveness of the correction
 
@@ -56,7 +56,7 @@ rmarkdown::render("HoxAB_GSK126_ComBat_eLife.Rmd")
 
 ## Input Data
 
-The script expects a CSV file named `Live_pq_693_TMTMosaic.csv` containing the protein quantification data from the mass spectrometry run.
+The script expects a CSV file named `Live_pq_693_TMTMosaic.csv` containing the protein quantification data from theGSK126-treated and TMT-labeled HOXA and HOXB DNA O-MAP experiment.
 
 ## Output Files
 
