@@ -37,7 +37,7 @@ PCA <- prcomp(t(all_numeric))
 #Move the PCA data for graphing to a data frame
 PCA_x <- as.data.frame(PCA$x)
 
-#Set the color palette for graphing the PCA
+#Set the color palette for graphing the PCA. Each color will correspond to a different condition
 color_pal <- c("cyan","cyan","cyan",
            "#FCEADE","#FCEADE","#FCEADE",
            "#FF8A5B","#FF8A5B","#FF8A5B",
@@ -45,6 +45,7 @@ color_pal <- c("cyan","cyan","cyan",
            "#FFFFFF","#FFFFFF","#FFFFFF",
            "#FFC300","#FFC300","#FFC300")
 
+#Set the shape to use for the PCA points. Each type of shape corresponds to a different replicate.
 shapes <- c(15,16,17,15,16,17,15,16,17,
             15,16,17,15,16,17,15,16,17)
 
