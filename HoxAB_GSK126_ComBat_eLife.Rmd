@@ -45,9 +45,12 @@ color_pal <- c("cyan","cyan","cyan",
            "#FFFFFF","#FFFFFF","#FFFFFF",
            "#FFC300","#FFC300","#FFC300")
 
+shapes <- c(15,16,17,15,16,17,15,16,17,
+            15,16,17,15,16,17,15,16,17)
+
 
 #Create and save the PCA plot
-ggplot(PCA_x, aes(x=PC1, y=PC2, color = color_pal)) + geom_point(size=5) + ylim(-175,125) + xlim(-100,500)
+ggplot(PCA_x, aes(x=PC1, y=PC2, color = color_pal)) + geom_point(size=5, shape = shapes, alpha = 0.5) + ylim(-175,125) + xlim(-100,500)
 ggsave('Pre-ComBat_PCA_HoxAB-GSK126.pdf', dpi = 300)
 ```
 
@@ -115,19 +118,12 @@ CB_PCA <- prcomp(t(Post_CB_Data))
 #Save PCA output data as a seperate data frame
 CB_PCA_x <- as.data.frame(CB_PCA$x)
 
-#Redefine the color palette, just in case
-color_pal <- c("cyan","cyan","cyan",
-           "#FCEADE","#FCEADE","#FCEADE",
-           "#FF8A5B","#FF8A5B","#FF8A5B",
-           "#EA526F","#EA526F","#EA526F",
-           "#FFFFFF","#FFFFFF","#FFFFFF",
-           "#FFC300","#FFC300","#FFC300")
 
 #Generate the PCA plot and export as a pdf with set scales to match the pre-batch corrected data's scales
-ggplot(CB_PCA_x, aes(x=PC1, y=PC2, color = color_pal)) + geom_point(size=5) + ylim(-175,125) + xlim(-100,500)
+ggplot(CB_PCA_x, aes(x=PC1, y=PC2, color = color_pal)) + geom_point(size=5, shape = shapes, alpha = 0.5) + ylim(-175,125) + xlim(-100,500)
 ggsave('Post_ComBat_PCA_HoxAB-GSK126.pdf', dpi = 300)
 
 #Generate the PCA plot and export as a pdf with the scales determined by ggplot2
-ggplot(CB_PCA_x, aes(x=PC1, y=PC2, color = color_pal)) + geom_point(size = 5)
+ggplot(CB_PCA_x, aes(x=PC1, y=PC2, color = color_pal)) + geom_point(size = 5, shape = shapes, alpha = 0.5)
 ggsave('Unscaled_Post_ComBat_PCA_HoxAB-GSK126.pdf', dpi = 300)
 ```
